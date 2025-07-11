@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add New Medicine</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f2f4f8;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+    }
+
+    h2 {
+      margin: 0;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .back-btn {
+      background-color: #3498db;
+      color: white;
+      padding: 8px 16px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    form {
+      background: #f9f9f9;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px;
+      background: #4CAF50;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 30px;
+      margin-bottom: 10px;
+    }
+
+    .alert {
+      background-color: #d4edda;
+      color: #155724;
+      padding: 12px 20px;
+      border-radius: 5px;
+      border: 1px solid #c3e6cb;
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      .top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .back-btn {
+        margin-top: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="top-bar">
+      <h2>💊 Add New Medicine</h2>
+      <a href="{{ url_for('home') }}" class="back-btn">⬅ Back to Dashboard</a>
+    </div>
+
+    <!-- Flash Message -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert" id="flash-message">
+          {% for message in messages %}
+            {{ message }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Manual Entry -->
+    <form method="post">
+      <label for="generic">Generic</label>
+      <input type="text" name="generic" required>
+
+      <label for="brand">Brand</label>
+      <input type="text" name="brand" required>
+
+      <label for="form">Form</label>
+      <input type="text" name="form" required>
+
+      <label for="strength">Strength</label>
+      <input type="text" name="strength" required>
+
+      <label for="price">Price</label>
+      <input type="number" step="0.01" name="price" required>
+
+      <button type="submit">➕ Add Medicine</button>
+    </form>
+
+    <!-- CSV Upload -->
+    <div class="section-title">📄 Upload Medicines via CSV</div>
+    <form method="post" action="{{ url_for('upload_csv') }}" enctype="multipart/form-data">
+      <label for="csv_file">Select CSV File</label>
+      <input type="file" name="csv_file" accept=".csv" required>
+      <button type="submit">📥 Upload CSV</button>
+    </form>
+  </div>
+
+  <!-- Auto-Hide Script -->
+  <script>
+    setTimeout(() => {
+      const flash = document.getElementById('flash-message');
+      if (flash) flash.style.display = 'none';
+    }, 3000);  // 3 seconds
+  </script>
+
+</body>
+</html>

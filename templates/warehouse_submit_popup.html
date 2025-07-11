@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Submission Complete</title>
+    <script>
+        window.onload = function() {
+            const goAgain = confirm("✅ Thank you for submitting stock details.\n\nDo you want to enter more data?");
+            if (goAgain) {
+                window.location.href = "/warehouse-entry";
+            } else {
+                window.location.href = "/district_dashboard";
+            }
+        }
+    </script>
+</head>
+<body>
+</body>
+</html>

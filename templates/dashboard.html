@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Medicine Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f7f9fc;
+      color: #2c3e50;
+      margin: 0;
+      padding: 20px;
+    }
+    .dark-mode {
+      background-color: #1e1e2f;
+      color: #fff;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .welcome {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .logout {
+      background-color: #e74c3c;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      text-decoration: none;
+    }
+    #modeToggle {
+      margin-left: 10px;
+      padding: 8px;
+    }
+    .summary-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      text-align: center;
+      flex: 1 1 200px;
+    }
+    .dark-mode .card {
+      background-color: #2c2c3e;
+    }
+    .action-buttons {
+      margin: 20px 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .primary-btn {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .primary-btn:hover {
+      background-color: #43a047;
+    }
+
+    .filter-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .dark-mode .filter-form {
+      background: #2c2c3e;
+    }
+    .filter-form select,
+    .filter-form input[type="date"] {
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      min-width: 160px;
+    }
+    .filter-form button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    table.dataTable thead th {
+      position: sticky;
+      top: 0;
+      background-color: #fff;
+      z-index: 10;
+    }
+    .dark-mode table.dataTable thead th {
+      background-color: #333;
+    }
+    .highlight { background-color: #fff9c4 !important; }
+    .expired { background-color: #ffcdd2 !important; }
+    .low-stock { background-color: #fff59d !important; }
+    .expiry-label {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.75em;
+      font-weight: bold;
+      margin-left: 6px;
+    }
+    .near-expiry { background-color: #ffeb3b; color: #000; }
+    .expired-label { background-color: #e53935; color: #fff; }
+    .dataTables_filter input {
+      padding: 6px 10px;
+      border-radius: 5px;
+      width: 300px;
+      border: 1px solid #ccc;
+    }
+    @media (max-width: 768px) {
+      .filter-form, .summary-cards {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="welcome">Welcome, {{ current_user.username | upper }}!</span>
+  <div>
+    <button id="modeToggle" class="primary-btn">🌗</button>
+    <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+  </div>
+</header>
+
+{% if current_user.role == "admin" %}
+<div class="action-buttons">
+  <a href="{{ url_for('admin_users') }}"><button class="primary-btn">👤 Manage Users</button></a>
+  <a href="{{ url_for('add_medicine') }}"><button class="primary-btn">➕ Add Medicine</button></a>
+  <a href="{{ url_for('manage_medicines') }}"><button class="primary-btn">⚙️ Manage Medicines</button></a>
+</div>
+{% endif %}
+
+<div class="summary-cards">
+  <div class="card"><h3>Total Entries</h3><p>{{ summary.total_entries }}</p></div>
+  <div class="card"><h3>Near Expiry</h3><p>{{ summary.near_expiry }}</p></div>
+  <div class="card"><h3>Low Stock</h3><p>{{ summary.low_stock }}</p></div>
+</div>
+
+<form method="get" class="filter-form">
+  <select name="district">
+    <option value="">District</option>
+    {% for district in districts %}
+      <option value="{{ district }}" {% if request.args.get('district')|lower == district|lower %}selected{% endif %}>{{ district }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="generic">
+    <option value="">Generic</option>
+    {% for g in generics %}
+      <option value="{{ g }}" {% if request.args.get('generic') == g %}selected{% endif %}>{{ g }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="brand">
+    <option value="">Brand</option>
+    {% for b in brands %}
+      <option value="{{ b }}" {% if request.args.get('brand') == b %}selected{% endif %}>{{ b }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="form">
+    <option value="">Form</option>
+    {% for f in forms %}
+      <option value="{{ f }}" {% if request.args.get('form') == f %}selected{% endif %}>{{ f }}</option>
+    {% endfor %}
+  </select>
+
+  <input type="date" name="start_date" value="{{ request.args.get('start_date', '') }}" title="From Date">
+  <input type="date" name="end_date" value="{{ request.args.get('end_date', '') }}" title="To Date">
+
+  <button type="submit" class="primary-btn">🔍 Filter</button>
+  <a href="{{ url_for('home') }}"><button type="button" class="primary-btn">❌ Clear</button></a>
+</form>
+
+<table id="medicineTable" class="display nowrap" style="width:100%">
+  <thead>
+    <tr>
+      <th>S.No</th><th>Date</th><th>District</th><th>Generic</th><th>Brand</th>
+      <th>Form</th><th>Strength</th><th>Price</th><th>Expiry</th>
+      <th>Opening</th><th>Receiving</th><th>Issued</th><th>Damage</th>
+      <th>Return</th><th>Closing</th><th>Total</th><th>Remarks</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in data %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ row.date }}</td>
+      <td>{{ row.district }}</td>
+      <td>{{ row.generic }}</td>
+      <td>{{ row.brand }}</td>
+      <td>{{ row.form }}</td>
+      <td>{{ row.strength }}</td>
+      <td>{{ "%.2f"|format(row.price) }}</td>
+      <td>
+        {{ row.expiry }}
+        {% if row.expiry_status == 'Expired' %}
+        <span class="expiry-label expired-label">Expired</span>
+        {% elif row.expiry_status == 'Near Expiry' %}
+        <span class="expiry-label near-expiry">Near Expiry</span>
+        {% endif %}
+      </td>
+      <td>{{ row.opening }}</td>
+      <td>{{ row.receiving }}</td>
+      <td>{{ row.issue }}</td>
+      <td>{{ row.discard }}</td>
+      <td>{{ row.return_qty }}</td>
+      <td>{{ row.closing }}</td>
+      <td>{{ "%.2f"|format(row.total) }}</td>
+      <td>{{ row.remarks }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/vfs_fonts.js"></script>
+
+<script>
+  $(document).ready(function () {
+    $('#modeToggle').click(function () {
+      $('body').toggleClass('dark-mode');
+    });
+
+    $('#medicineTable').DataTable({
+      dom: 'Bfrtip',
+      buttons: ['excelHtml5', 'pdfHtml5', 'print'],
+      scrollX: true,
+      order: [],
+      rowCallback: function (row, data) {
+        $(row).removeClass('expired highlight low-stock');
+        const expiryText = data[8];
+        const closing = parseInt(data[14]);
+
+        if (expiryText.includes('Expired')) {
+          $(row).addClass('expired');
+        } else if (expiryText.includes('Near Expiry')) {
+          $(row).addClass('highlight');
+        } else if (!isNaN(closing) && closing <= 10) {
+          $(row).addClass('low-stock');
+        }
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

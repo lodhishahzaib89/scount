@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Medicine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        form { max-width: 500px; margin: auto; }
+        label { display: block; margin-top: 10px; }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #219150;
+        }
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Edit Medicine</h2>
+
+    <form method="POST">
+        <label>Generic:</label>
+        <input type="text" name="generic" value="{{ medicine.generic }}" required>
+
+        <label>Brand:</label>
+        <input type="text" name="brand" value="{{ medicine.brand }}" required>
+
+        <label>Form:</label>
+        <input type="text" name="form" value="{{ medicine.form }}" required>
+
+        <label>Strength:</label>
+        <input type="text" name="strength" value="{{ medicine.strength }}" required>
+
+        <label>Price:</label>
+        <input type="number" step="0.01" name="price" value="{{ medicine.price }}" required>
+
+        <button type="submit">💾 Save Changes</button>
+    </form>
+
+    <a href="{{ url_for('manage_medicines') }}" class="back-link">← Back to Manage Medicines</a>
+
+</body>
+</html>
