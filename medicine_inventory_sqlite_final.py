@@ -28,7 +28,9 @@ class User(UserMixin):
 # --- Load User from DB ---
 @login_manager.user_loader
 def load_user(user_id):
-    with sqlite3.connect("medicine.db") as conn:
+    db_path = os.path.abspath("medicine.db")
+    print("📁 Using DB path:", db_path)  # ✅ See exact file path
+    with sqlite3.connect(db_path) as conn:
         cur = conn.cursor()
         cur.execute("SELECT id, username, role FROM users WHERE id = ?", (user_id,))
         user = cur.fetchone()
@@ -38,7 +40,8 @@ def load_user(user_id):
 
 # --- DB Connection ---
 def get_db_connection():
-    conn = sqlite3.connect("medicine.db")
+   db_path = os.path.join(os.path.dirname(__file__), "medicine.db")
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -54,7 +57,8 @@ def is_near_expiry(expiry_str):
 def init_db():
     if os.path.exists("medicine.db"):
         return  # Skip init if DB already exists
-    with sqlite3.connect("medicine.db") as conn:
+    db_path = os.path.join(os.path.dirname(__file__), "medicine.db")
+    with sqlite3.connect(db_path) as conn:
         cur = conn.cursor()
         cur.execute("""
             CREATE TABLE IF NOT EXISTS medicine_data (
