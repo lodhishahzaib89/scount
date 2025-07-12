@@ -416,7 +416,6 @@ def delete_medicine(medicine_id):
     return redirect(url_for("manage_medicines"))
 
 # this route is for warehouse entry 
-# this route is for warehouse entry 
 @app.route("/warehouse-entry", methods=["GET", "POST"])
 @login_required
 def warehouse_entry():
@@ -445,9 +444,9 @@ def warehouse_entry():
 
     if request.method == "POST":
         try:
-            # These are fixed values
-            month = selected_month or request.form.get("month")
-            year = selected_year or request.form.get("year")
+            # ✅ Get the values from hidden inputs
+            month = request.form.get("month")
+            year = request.form.get("year")
             date = datetime.today().strftime("%Y-%m-%d")
             district = current_user.username
 
@@ -473,9 +472,11 @@ def warehouse_entry():
             cur = conn.cursor()
 
             for entry in entries:
-                # Validate that required fields are not empty
+                print("ENTRY:", entry)  # ✅ Show data in console
+
+                # ✅ Skip if any important field is missing
                 if any(val is None or str(val).strip() == "" for val in entry[:13]):
-                    continue  # Skip incomplete row (we allow empty remarks)
+                    continue
 
                 try:
                     cur.execute("""
@@ -489,23 +490,24 @@ def warehouse_entry():
                         int(entry[6]), int(entry[7]), int(entry[8]), int(entry[9]),
                         int(entry[10]), int(entry[11]), float(entry[12]), entry[13]
                     ))
-                except Exception as e:
-                    print("Row insert error:", str(e))
-                    continue  # Skip bad row
+                except Exception as row_error:
+                    print("Row insert error:", row_error)
+                    continue
 
             conn.commit()
             conn.close()
 
-            return "", 200  # JS expects 200 OK to show modal
+            return "", 200
 
         except Exception as e:
             print("Error in POST /warehouse-entry:", str(e))
-            return "Something went wrong", 500
+            return f"Error: {str(e)}", 500  # ✅ Show real error in browser
 
     return render_template("warehouse_entry.html",
                            medicines=sample_medicines,
                            selected_month=selected_month,
                            selected_year=selected_year)
+
 
 # this route is for district dashboard
 @app.route("/district_dashboard")
