@@ -49,11 +49,12 @@ def is_near_expiry(expiry_str):
     except:
         return False
 
-# --- Initialize Database ---
+# --- Initialize Database --- (only if DB doesn't exist) ---
 def init_db():
+    if os.path.exists("medicine.db"):
+        return  # Skip init if DB already exists
     with sqlite3.connect("medicine.db") as conn:
         cur = conn.cursor()
-        # Create tables
         cur.execute("""
             CREATE TABLE IF NOT EXISTS medicine_data (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -95,7 +96,7 @@ def init_db():
             )
         """)
         # Insert default users if not exist
-        cur.execute("SELECT COUNT(*) FROM users")
+       cur.execute("SELECT COUNT(*) FROM users")
         if cur.fetchone()[0] == 0:
             cur.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", ("admin", "admin123", "admin"))
             cur.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", ("Kech", "kech123", "district"))
