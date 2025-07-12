@@ -455,30 +455,28 @@ def warehouse_entry():
             date = datetime.today().strftime("%Y-%m-%d")
             district = current_user.username
 
-            # Extract all rows of input
+            # Extract all rows of input using correct names with []
             entries = zip(
-                request.form.getlist("generic"),
-                request.form.getlist("brand"),
-                request.form.getlist("form"),
-                request.form.getlist("strength"),
-                request.form.getlist("price"),
-                request.form.getlist("expiry"),
-                request.form.getlist("opening"),
-                request.form.getlist("receiving"),
-                request.form.getlist("issue"),
-                request.form.getlist("discard"),
-                request.form.getlist("return_qty"),
-                request.form.getlist("closing"),
-                request.form.getlist("total"),
-                request.form.getlist("remarks")
+                request.form.getlist("generic[]"),
+                request.form.getlist("brand[]"),
+                request.form.getlist("form[]"),
+                request.form.getlist("strength[]"),
+                request.form.getlist("price[]"),
+                request.form.getlist("expiry[]"),
+                request.form.getlist("opening[]"),
+                request.form.getlist("receiving[]"),
+                request.form.getlist("issue[]"),
+                request.form.getlist("discard[]"),
+                request.form.getlist("return_qty[]"),
+                request.form.getlist("closing[]"),
+                request.form.getlist("total[]"),
+                request.form.getlist("remarks[]")
             )
 
             conn = get_db_connection()
             cur = conn.cursor()
 
             for entry in entries:
-                print("ENTRY:", entry)  # ✅ Show data in console
-
                 # ✅ Skip if any important field is missing
                 if any(val is None or str(val).strip() == "" for val in entry[:13]):
                     continue
@@ -502,11 +500,11 @@ def warehouse_entry():
             conn.commit()
             conn.close()
 
-            return "", 200
+            return "", 200  # Success
 
         except Exception as e:
             print("Error in POST /warehouse-entry:", str(e))
-            return f"Error: {str(e)}", 500  # ✅ Show real error in browser
+            return f"Error: {str(e)}", 500
 
     return render_template("warehouse_entry.html",
                            medicines=sample_medicines,
