@@ -415,6 +415,7 @@ def delete_medicine(medicine_id):
     return redirect(url_for("manage_medicines"))
 
 # this route is for warehouse entry 
+# this route is for warehouse entry 
 @app.route("/warehouse-entry", methods=["GET", "POST"])
 @login_required
 def warehouse_entry():
@@ -442,43 +443,63 @@ def warehouse_entry():
     conn.close()
 
     if request.method == "POST":
-        month = request.form.get("month")
-        year = request.form.get("year")
-        date = datetime.today().strftime("%Y-%m-%d")
-        district = current_user.username
+        try:
+            # These are fixed values
+            month = selected_month or request.form.get("month")
+            year = selected_year or request.form.get("year")
+            date = datetime.today().strftime("%Y-%m-%d")
+            district = current_user.username
 
-        entries = zip(
-            request.form.getlist("generic"),
-            request.form.getlist("brand"),
-            request.form.getlist("form"),
-            request.form.getlist("strength"),
-            request.form.getlist("price"),
-            request.form.getlist("expiry"),
-            request.form.getlist("opening"),
-            request.form.getlist("receiving"),
-            request.form.getlist("issue"),
-            request.form.getlist("discard"),
-            request.form.getlist("return_qty"),
-            request.form.getlist("closing"),
-            request.form.getlist("total"),
-            request.form.getlist("remarks")
-        )
+            # Extract all rows of input
+            entries = zip(
+                request.form.getlist("generic"),
+                request.form.getlist("brand"),
+                request.form.getlist("form"),
+                request.form.getlist("strength"),
+                request.form.getlist("price"),
+                request.form.getlist("expiry"),
+                request.form.getlist("opening"),
+                request.form.getlist("receiving"),
+                request.form.getlist("issue"),
+                request.form.getlist("discard"),
+                request.form.getlist("return_qty"),
+                request.form.getlist("closing"),
+                request.form.getlist("total"),
+                request.form.getlist("remarks")
+            )
 
-        conn = get_db_connection()
-        cur = conn.cursor()
-        for entry in entries:
-            cur.execute("""
-                INSERT INTO medicine_data (
-                    date, district, report_month, generic, brand, form, strength, price, expiry,
-                    opening, receiving, issue, discard, return_qty, closing, total, remarks
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                date, district, f"{month}-{year}", *entry
-            ))
-        conn.commit()
-        conn.close()
+            conn = get_db_connection()
+            cur = conn.cursor()
 
-        return render_template("warehouse_submit_popup.html")
+            for entry in entries:
+                # Validate that required fields are not empty
+                if any(val is None or str(val).strip() == "" for val in entry[:13]):
+                    continue  # Skip incomplete row (we allow empty remarks)
+
+                try:
+                    cur.execute("""
+                        INSERT INTO medicine_data (
+                            date, district, report_month, generic, brand, form, strength, price, expiry,
+                            opening, receiving, issue, discard, return_qty, closing, total, remarks
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        date, district, f"{month}-{year}",
+                        entry[0], entry[1], entry[2], entry[3], float(entry[4]), entry[5],
+                        int(entry[6]), int(entry[7]), int(entry[8]), int(entry[9]),
+                        int(entry[10]), int(entry[11]), float(entry[12]), entry[13]
+                    ))
+                except Exception as e:
+                    print("Row insert error:", str(e))
+                    continue  # Skip bad row
+
+            conn.commit()
+            conn.close()
+
+            return "", 200  # JS expects 200 OK to show modal
+
+        except Exception as e:
+            print("Error in POST /warehouse-entry:", str(e))
+            return "Something went wrong", 500
 
     return render_template("warehouse_entry.html",
                            medicines=sample_medicines,
