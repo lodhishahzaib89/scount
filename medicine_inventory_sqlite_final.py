@@ -7,6 +7,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 import sqlite3
 from datetime import datetime, timedelta
 from flask import flash, get_flashed_messages
+import os
 
 # --- Initialize Flask App ---
 app = Flask(__name__)
@@ -49,7 +50,7 @@ def is_near_expiry(expiry_str):
     except:
         return False
 
-# --- Initialize Database --- (only if DB doesn't exist) ---
+# --- Initialize Database (only if DB doesn't exist) ---
 def init_db():
     if os.path.exists("medicine.db"):
         return  # Skip init if DB already exists
@@ -96,12 +97,11 @@ def init_db():
             )
         """)
         # Insert default users if not exist
-       cur.execute("SELECT COUNT(*) FROM users")
+        cur.execute("SELECT COUNT(*) FROM users")
         if cur.fetchone()[0] == 0:
             cur.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", ("admin", "admin123", "admin"))
             cur.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", ("Kech", "kech123", "district"))
         conn.commit()
-
 #  This route is for login/logout/index/home routes
 @app.route("/")
 def index():
