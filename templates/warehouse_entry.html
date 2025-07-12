@@ -82,6 +82,8 @@
     </form>
     {% else %}
     <form id="entryForm">
+	<input type="hidden" name="month" value="{{ selected_month }}">
+  	<input type="hidden" name="year" value="{{ selected_year }}">
         <p><strong>Reporting Period:</strong> {{ selected_month }}/{{ selected_year }}</p>
         <table>
             <thead>
