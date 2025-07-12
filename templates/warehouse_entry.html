@@ -4,35 +4,14 @@
     <title>Warehouse Entry</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            overflow-x: auto;
-        }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 6px;
-            text-align: center;
-        }
-        input[type="number"], input[type="text"], input[type="date"] {
-            width: 100px;
-        }
-        .readonly {
-            background-color: #eee;
-        }
-        button {
-            margin-top: 10px;
-            padding: 8px 16px;
-        }
-        .center {
-            text-align: center;
-        }
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; overflow-x: auto; }
+        th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+        input[type="number"], input[type="text"], input[type="date"] { width: 100px; }
+        .readonly { background-color: #eee; }
+        button { margin-top: 10px; padding: 8px 16px; }
+        .center { text-align: center; }
 
-        /* Modal styles */
         .modal {
             display: none;
             position: fixed;
@@ -50,10 +29,6 @@
             max-width: 400px;
             text-align: center;
             border-radius: 6px;
-        }
-        .modal-buttons button {
-            margin: 10px;
-            padding: 8px 16px;
         }
     </style>
 </head>
@@ -109,12 +84,12 @@
                     <td><input type="text" name="strength" value="{{ m.strength }}" readonly class="readonly"></td>
                     <td><input type="number" name="price" value="{{ m.price }}" readonly class="readonly price"></td>
 
-                    <td><input type="date" name="expiry"></td>
-                    <td><input type="number" name="opening" class="editable" oninput="recalculate(this)"></td>
-                    <td><input type="number" name="receiving" class="editable" oninput="recalculate(this)"></td>
-                    <td><input type="number" name="issue" class="editable" oninput="recalculate(this)"></td>
-                    <td><input type="number" name="discard" class="editable" oninput="recalculate(this)"></td>
-                    <td><input type="number" name="return_qty" class="editable" oninput="recalculate(this)"></td>
+                    <td><input type="date" name="expiry" required></td>
+                    <td><input type="number" name="opening" required oninput="recalculate(this)"></td>
+                    <td><input type="number" name="receiving" required oninput="recalculate(this)"></td>
+                    <td><input type="number" name="issue" required oninput="recalculate(this)"></td>
+                    <td><input type="number" name="discard" required oninput="recalculate(this)"></td>
+                    <td><input type="number" name="return_qty" required oninput="recalculate(this)"></td>
                     <td><input type="number" name="closing" readonly class="readonly closing"></td>
                     <td><input type="number" name="total" readonly class="readonly total"></td>
                     <td><input type="text" name="remarks"></td>
@@ -127,14 +102,12 @@
         </div>
     </form>
 
-    <!-- Custom Modal -->
+    <!-- Modal -->
     <div id="popupModal" class="modal">
         <div class="modal-content">
-            <p>✅ Thank you for submitting stock details.<br><br>Do you want to enter more data?</p>
-            <div class="modal-buttons">
-                <button id="newEntryBtn">📝 New Entry</button>
-                <button id="dashboardBtn">📊 Dashboard</button>
-            </div>
+            <p>✅ Data saved successfully.<br><br>Do you want to enter more?</p>
+            <button id="newEntryBtn">📝 New Entry</button>
+            <button id="dashboardBtn">📊 Dashboard</button>
         </div>
     </div>
 
@@ -155,18 +128,16 @@
 
         document.getElementById('entryForm').addEventListener('submit', function (e) {
             e.preventDefault();
-
-            const form = this;
-            const formData = new FormData(form);
+            const formData = new FormData(this);
 
             fetch("{{ request.path }}", {
                 method: "POST",
                 body: formData
-            }).then(response => {
-                if (response.ok) {
+            }).then(res => {
+                if (res.ok) {
                     document.getElementById('popupModal').style.display = 'block';
                 } else {
-                    alert("Something went wrong. Please try again.");
+                    alert("⚠️ Something went wrong. Try again.");
                 }
             });
         });
@@ -174,16 +145,12 @@
         document.getElementById('newEntryBtn').onclick = function () {
             window.location.href = "{{ url_for('warehouse_entry') }}";
         };
-
         document.getElementById('dashboardBtn').onclick = function () {
             window.location.href = "{{ url_for('district_dashboard') }}";
         };
-
-        window.onclick = function(event) {
+        window.onclick = function (e) {
             const modal = document.getElementById('popupModal');
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
+            if (e.target == modal) modal.style.display = "none";
         };
     </script>
     {% endif %}
