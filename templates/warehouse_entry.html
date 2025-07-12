@@ -84,12 +84,12 @@
                     <td><input type="text" name="strength" value="{{ m.strength }}" readonly class="readonly"></td>
                     <td><input type="number" name="price" value="{{ m.price }}" readonly class="readonly price"></td>
 
-                    <td><input type="date" name="expiry" required></td>
-                    <td><input type="number" name="opening" required oninput="recalculate(this)"></td>
-                    <td><input type="number" name="receiving" required oninput="recalculate(this)"></td>
-                    <td><input type="number" name="issue" required oninput="recalculate(this)"></td>
-                    <td><input type="number" name="discard" required oninput="recalculate(this)"></td>
-                    <td><input type="number" name="return_qty" required oninput="recalculate(this)"></td>
+                    <td><input type="date" name="expiry"></td>
+                    <td><input type="number" name="opening" oninput="recalculate(this)"></td>
+                    <td><input type="number" name="receiving" oninput="recalculate(this)"></td>
+                    <td><input type="number" name="issue" oninput="recalculate(this)"></td>
+                    <td><input type="number" name="discard" oninput="recalculate(this)"></td>
+                    <td><input type="number" name="return_qty" oninput="recalculate(this)"></td>
                     <td><input type="number" name="closing" readonly class="readonly closing"></td>
                     <td><input type="number" name="total" readonly class="readonly total"></td>
                     <td><input type="text" name="remarks"></td>
@@ -128,7 +128,30 @@
 
         document.getElementById('entryForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            const formData = new FormData(this);
+            const form = this;
+            const rows = form.querySelectorAll("tbody tr");
+            let hasValidData = false;
+
+            rows.forEach(row => {
+                const qtyFields = ['opening', 'receiving', 'issue', 'discard', 'return_qty'];
+                const isFilled = qtyFields.some(name => {
+                    const val = row.querySelector(`[name="${name}"]`).value;
+                    return val && parseFloat(val) > 0;
+                });
+
+                if (!isFilled) {
+                    row.querySelectorAll("input").forEach(input => input.disabled = true);
+                } else {
+                    hasValidData = true;
+                }
+            });
+
+            if (!hasValidData) {
+                alert("❌ You must enter at least one medicine.");
+                return;
+            }
+
+            const formData = new FormData(form);
 
             fetch("{{ request.path }}", {
                 method: "POST",
