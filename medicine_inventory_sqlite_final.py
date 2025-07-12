@@ -40,10 +40,11 @@ def load_user(user_id):
 
 # --- DB Connection ---
 def get_db_connection():
-   db_path = os.path.join(os.path.dirname(__file__), "medicine.db")
+    db_path = os.path.join(os.path.dirname(__file__), "medicine.db")
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
+
 
 # --- Expiry Check ---
 def is_near_expiry(expiry_str):
